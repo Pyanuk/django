@@ -1,0 +1,32 @@
+{% extends 'home/navigation.html' %}
+
+{% load static %}
+
+{% block title %}Вход{% endblock %}
+
+{% block content %}
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{% static 'style/auth.css' %}" type="text/css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+</head>
+<div class="main-content">
+    <div class="auth-container">
+        <form method="post" class="auth-form animate__animated animate__fadeIn">
+            {% csrf_token %}
+            <h2>Вход в систему</h2>
+            <div class="form-group">
+                <label for="email">Email:</label>
+                <input type="email" id="email" name="email" required>
+            </div>
+            <div class="form-group">
+                <label for="password">Пароль:</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+            <button type="submit" class="auth-button">Войти</button>
+            <p class="auth-link">Нет аккаунта? <a href="{% url 'register' %}">Зарегистрируйтесь здесь</a></p>
+        </form>
+    </div>
+</div>
+{% endblock %}

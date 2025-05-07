@@ -1,0 +1,59 @@
+{% extends 'home/navigation.html' %}
+
+{% load static %}
+
+{% block title %}Контакты{% endblock %}
+
+{% block content %}
+<head>
+    <link rel="stylesheet" href="{% static 'style/stylehome.css' %}" type="text/css">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    <style>
+        .contact-info .lead {
+            font-size: 1.25rem; 
+            line-height: 1.5;
+            color: #fffff; 
+            font-weight: 500; 
+        }
+        
+        .contact-info .lead a {
+            color: #007bff; 
+            text-decoration: none; 
+            font-weight: 600; 
+        }
+
+        .contact-info .lead a:hover {
+            color: #0056b3; 
+            text-decoration: underline; 
+        }
+
+        .contact-info .text-center {
+            margin-top: 30px;
+        }
+    </style>
+</head>
+
+<div class="container mt-5">
+
+    <div class="jumbotron text-left rounded-4 shadow p-5">
+        <h1 class="display-4 animate__animated animate__fadeIn">Контакты</h1>
+        <p class="lead animate__animated animate__fadeIn animate__delay-1s">Свяжитесь с нами для получения дополнительной информации или помощи.</p>
+        <a class="btn btn-custom btn-lg mt-3 animate__animated animate__fadeIn animate__delay-2s" href="mailto:pyanukstore@gmail.com">Написать нам</a>
+    </div>
+
+    <section class="contact-info mt-5">
+        <h2 class="text-center animate__animated animate__fadeIn animate__delay-3s">Наши контактные данные</h2>
+        <p class="lead text-center animate__animated animate__fadeIn animate__delay-4s">
+            Мы всегда рады помочь! Ниже вы найдете наши контактные данные для связи:
+        </p>
+        <div class="text-center mt-4 animate__animated animate__fadeIn animate__delay-5s">
+            <p class="lead">Электронная почта: <a href="mailto:pyanukstore@gmail.com">pyanukstore@gmail.com</a></p>
+            <p class="lead">Телефон: <a href="tel:+79025824581">+7 (902) 582 45-81</a></p>
+            <p class="lead">Адрес: ул. Лубянский проезд, 25, Москва, Россия</p>
+        </div>
+    </section>
+</div>
+
+
+{% endblock %}

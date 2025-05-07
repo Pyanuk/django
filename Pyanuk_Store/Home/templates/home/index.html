@@ -1,0 +1,97 @@
+{% extends 'home/navigation.html' %}
+
+{% load static %}
+
+{% block title %}Главная{% endblock %}
+
+{% block content %}
+<head>
+    <link rel="stylesheet" href="{% static 'style/stylehome.css' %}" type="text/css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+    <link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css" />
+</head>
+
+<div class="container mt-5">
+
+    <div class="jumbotron text-left rounded-4 shadow p-5">
+        <h1 class="display-4 animate__animated animate__fadeIn">Добро пожаловать в наш магазин электронной техники!</h1>
+        <p class="lead animate__animated animate__fadeIn animate__delay-1s">Только лучшие товары для вашего удобства: смартфоны, ноутбуки, аксессуары и многое другое.</p>
+        <a class="btn btn-custom btn-lg mt-3 animate__animated animate__fadeIn animate__delay-2s" href="fullproducts.html">Перейти в каталог</a>
+    </div>
+
+    <section class="smartphones">
+        <h2 class="mt-5 mb-4 text-center animate__animated animate__fadeIn">Популярные категории</h2>
+        <div class="swiper-container">
+            <div class="swiper-wrapper">
+                <div class="swiper-slide">
+                    <div class="card h-100 shadow-sm">
+                        <img src="https://www.computerra.ru/wp-content/uploads/2020/01/samye-populyarnye-smartfony-obzor-1200x675.jpg" class="card-img-top" alt="Смартфоны">
+                        <div class="card-body">
+                            <h5 class="card-title">Смартфоны</h5>
+                        </div>
+                    </div>
+                </div>
+                <div class="swiper-slide">
+                    <div class="card h-100 shadow-sm">
+                        <img src="https://cdn1.technopark.ru/technopark/photos_resized/faq_top_image/1710_1112/21/1_21.jpg" class="card-img-top" alt="Ноутбуки">
+                        <div class="card-body">
+                            <h5 class="card-title">Ноутбуки</h5>
+                        </div>
+                    </div>
+                </div>
+                <div class="swiper-slide">
+                    <div class="card h-100 shadow-sm">
+                        <img src="https://img.freepik.com/free-vector/mobile-phone-accessories-cartoon-illustration-set-vr-glasses-3d-model-cellphones-case-charger-battery-headphones-smart-watch-memory-card-selfie-stick-technology-smartphone-concept_74855-23119.jpg?semt=ais_hybrid&w=740" class="card-img-top" alt="Аксессуары">
+                        <div class="card-body">
+                            <h5 class="card-title">Аксессуары</h5>
+                        </div>
+                    </div>
+                </div>
+            </div>
+           
+            <div class="swiper-button-next"></div>
+            <div class="swiper-button-prev"></div>
+    
+            <div class="swiper-pagination"></div>
+        </div>
+    </section>
+</div>
+
+
+<script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+       
+        const swiperCategories = new Swiper('.swiper-container', {
+            slidesPerView: 3,
+            spaceBetween: 20,
+            loop: true,
+            autoplay: {
+                delay: 3000,
+                disableOnInteraction: false,
+            },
+            pagination: {
+                el: '.swiper-pagination',
+                clickable: true,
+            },
+            navigation: {
+                nextEl: '.swiper-button-next',
+                prevEl: '.swiper-button-prev',
+            },
+            breakpoints: {
+                640: {
+                    slidesPerView: 1,
+                    spaceBetween: 20,
+                },
+                1024: {
+                    slidesPerView: 3,
+                    spaceBetween: 30,
+                },
+            },
+        });
+
+        
+    });
+</script>
+{% endblock %}

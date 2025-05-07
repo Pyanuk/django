@@ -1,0 +1,286 @@
+{% extends 'home/navigation.html' %}
+{% load static %}
+
+{% block title %}Корзина{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'style/products.css' %}" type="text/css">
+
+<div class="container">
+    <h1>Корзина</h1>
+
+    {% if cart_items %}
+        <div class="cart-items">
+            {% for item in cart_items %}
+                <div class="cart-item">
+                    <img src="{{ item.item.product.image_url|default:'https://via.placeholder.com/150' }}" alt="{{ item.item.product.name }}" style="width: 100px; height: 100px; object-fit: cover; border-radius: 5px;">
+                    <div style="flex-grow: 1; padding: 0 20px;">
+                        <h3>{{ item.item.product.name }}</h3>
+                        <p>Производитель: {{ item.item.product.manufacturer.name }}</p>
+                        <p class="price">{{ item.item.product.price }} ₽ x {{ item.item.quantity }} = {{ item.subtotal }} ₽</p>
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 10px;">
+                        <div style="display: flex; gap: 5px;">
+                            <button onclick="window.location.href='/update-cart/{{ item.item.id }}/?action=decrease'" style="padding: 5px 10px; background-color: #ff4d4d; color: #ffffff; border: none; border-radius: 5px;">-</button>
+                            <span>{{ item.item.quantity }}</span>
+                            <button onclick="window.location.href='/update-cart/{{ item.item.id }}/?action=increase'" style="padding: 5px 10px; background-color: #ff4d4d; color: #ffffff; border: none; border-radius: 5px;">+</button>
+                        </div>
+                        <button class="remove-from-cart" data-product-id="{{ item.item.product.id }}" data-cart-id="{{ item.item.id }}" style="padding: 5px 10px; background-color: #ff4d4d; color: #ffffff; border: none; border-radius: 5px;">Удалить</button>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+        <div style="margin-top: 20px; text-align: right;">
+            <h3>Итого: {{ total }} ₽</h3>
+            <button id="checkout-button" style="padding: 10px 20px; background-color: #ff4d4d; color: #ffffff; border: none; border-radius: 5px;">Оформить заказ</button>
+        </div>
+    {% else %}
+        <p class="no-products">Корзина пуста.</p>
+    {% endif %}
+
+    <!-- Модальное окно для формы оплаты -->
+    <div id="checkout-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">×</span>
+            <h2>Введите данные для оплаты</h2>
+            <form id="payment-form">
+                <label for="email">Email для уведомления:</label>
+                <input type="email" id="email" name="email" required><br>
+                <label for="card-number">Номер карты:</label>
+                <input type="text" id="card-number" name="card_number" required><br>
+                <label for="expiry-date">Срок действия (MM/YY):</label>
+                <input type="text" id="expiry-date" name="expiry_date" required><br>
+                <label for="cvv">CVV:</label>
+                <input type="text" id="cvv" name="cvv" required><br>
+                <label for="payment-method">Метод оплаты:</label>
+                <select id="payment-method" name="payment_method" required>
+                    <option value="credit_card">Кредитная карта</option>
+                    <option value="debit_card">Дебетовая карта</option>
+                </select><br>
+                <button type="submit" style="padding: 10px 20px; background-color: #ff4d4d; color: #ffffff; border: none; border-radius: 5px;">Подтвердить оплату</button>
+                <button type="button" id="cancel-checkout" style="padding: 10px 20px; background-color: #ccc; color: #000; border: none; border-radius: 5px; margin-left: 10px;">Отмена</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const removeButtons = document.querySelectorAll('.remove-from-cart');
+    removeButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const cartId = this.getAttribute('data-cart-id');
+            const productId = this.getAttribute('data-product-id');
+            fetch(`/update-cart/${cartId}/?action=delete`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        window.location.reload();
+                        window.dispatchEvent(new CustomEvent('cartUpdated', { detail: { product_id: productId, in_cart: data.in_cart } }));
+                    }
+                })
+                .catch(error => console.error('Ошибка:', error));
+        });
+    });
+
+    // Показать модальное окно при нажатии на "Оформить заказ"
+    const checkoutButton = document.getElementById('checkout-button');
+    const checkoutModal = document.getElementById('checkout-modal');
+    const closeModal = document.querySelector('.close-modal');
+    const cancelButton = document.getElementById('cancel-checkout');
+    const paymentForm = document.getElementById('payment-form');
+
+    checkoutButton.addEventListener('click', function() {
+        checkoutModal.style.display = 'block';
+    });
+
+    closeModal.addEventListener('click', function() {
+        checkoutModal.style.display = 'none';
+    });
+
+    cancelButton.addEventListener('click', function() {
+        checkoutModal.style.display = 'none';
+    });
+
+    // Закрытие модального окна при клике вне формы
+    window.addEventListener('click', function(event) {
+        if (event.target == checkoutModal) {
+            checkoutModal.style.display = 'none';
+        }
+    });
+
+    // Обработка формы оплаты
+    paymentForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        const email = document.getElementById('email').value;
+        const cardNumber = document.getElementById('card-number').value;
+        const expiryDate = document.getElementById('expiry-date').value;
+        const cvv = document.getElementById('cvv').value;
+        const paymentMethod = document.getElementById('payment-method').value;
+
+        if (!email || !cardNumber || !expiryDate || !cvv || !paymentMethod) {
+            alert('Пожалуйста, заполните все поля.');
+            return;
+        }
+
+        fetch('/checkout/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({
+                email: email,
+                card_number: cardNumber,
+                expiry_date: expiryDate,
+                cvv: cvv,
+                payment_method: paymentMethod,
+                total_amount: {{ total|safe }}
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Заказ успешно оформлен!');
+                checkoutModal.style.display = 'none';
+                window.location.reload();
+            } else {
+                alert('Ошибка при оформлении заказа: ' + data.error);
+            }
+        })
+        .catch(error => console.error('Ошибка:', error));
+    });
+
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    window.addEventListener('cartUpdated', function(e) {
+        const productId = e.detail.product_id;
+        const inCart = e.detail.in_cart;
+        const buttons = document.querySelectorAll('.add-to-cart');
+        buttons.forEach(button => {
+            if (button.getAttribute('data-product-id') === productId.toString()) {
+                button.textContent = inCart ? 'Товар в корзине' : 'Добавить в корзину';
+                button.disabled = inCart;
+            }
+        });
+    });
+});
+</script>
+
+<style>
+.cart-items {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.cart-item {
+    display: flex;
+    align-items: center;
+    background-color: rgba(255, 255, 255, 0.1);
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    backdrop-filter: blur(5px);
+}
+
+.messages {
+    margin-bottom: 20px;
+}
+
+.messages p.error {
+    color: #ff4d4d;
+    font-weight: bold;
+}
+
+/* Стили для модального окна */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5); /* Полупрозрачный фон */
+    z-index: 1000;
+}
+
+.modal-content {
+    background-color: #1e272e; /* Темный фон, соответствующий дизайну */
+    margin: 15% auto;
+    padding: 20px;
+    border-radius: 10px;
+    width: 80%;
+    max-width: 400px;
+    color: #ffffff; /* Белый текст */
+    position: relative;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.close-modal {
+    color: #ff4d4d;
+    position: absolute;
+    top: 10px;
+    right: 20px;
+    font-size: 24px;
+    cursor: pointer;
+}
+
+.close-modal:hover {
+    color: #ff6b6b;
+}
+
+.modal-content label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+.modal-content input,
+.modal-content select {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    background-color: #2d3a45; /* Темный фон для полей */
+    color: #ffffff;
+}
+
+.modal-content button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-right: 10px;
+}
+
+.modal-content button[type="submit"] {
+    background-color: #ff4d4d;
+    color: #ffffff;
+}
+
+.modal-content button[type="button"] {
+    background-color: #4a5b6a;
+    color: #ffffff;
+}
+
+.modal-content button:hover {
+    opacity: 0.9;
+}
+</style>
+{% endblock %}

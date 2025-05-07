@@ -1,0 +1,106 @@
+{% extends 'home/navigation.html' %}
+{% load static %}
+
+{% block title %}Категории{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'style/products.css' %}" type="text/css">
+
+<div class="container">
+    <h1>Категории</h1>
+    {% for category in categories %}
+        <div class="category">
+            <h2>{{ category.name }}</h2>
+            {% with products=category.products_set.all %}
+                {% if products %}
+                    <div class="products">
+                        {% for product in products %}
+                            <div class="product-card">
+                                {% if product.image_url %}
+                                    <img src="{{ product.image_url }}" alt="{{ product.name }}">
+                                {% else %}
+                                    <img src="https://via.placeholder.com/150" alt="Нет изображения">
+                                {% endif %}
+                                <h3>{{ product.name }}</h3>
+                                <p>Производитель: {{ product.manufacturer.name }}</p>
+                                <p class="price">{{ product.price }} ₽</p>
+                                <button class="add-to-cart" data-product-id="{{ product.id }}">
+                                    {% if product.id in cart_items %}
+                                        Товар в корзине
+                                    {% else %}
+                                        Добавить в корзину
+                                    {% endif %}
+                                </button>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="no-products">Нет товаров в этой категории.</p>
+                {% endif %}
+            {% endwith %}
+        </div>
+    {% empty %}
+        <p class="no-products">Нет доступных категорий.</p>
+    {% endfor %}
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const addToCartButtons = document.querySelectorAll('.add-to-cart');
+        addToCartButtons.forEach(button => {
+            const productId = button.getAttribute('data-product-id');
+            if (button.textContent.trim() === 'Товар в корзине') {
+                button.disabled = true; // Отключаем кнопку, если товар уже в корзине
+            }
+    
+            button.addEventListener('click', function() {
+                fetch(`/add-to-cart/${productId}/`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.error) {
+                            // Показываем сообщение об ошибке
+                            const message = document.createElement('div');
+                            message.className = 'auth-message';
+                            message.textContent = data.error + ' Перейдите на страницу логина.';
+                            message.style.cssText = 'position: fixed; bottom: 20px; right: 20px; background-color: #ff4d4d; color: #ffffff; padding: 10px 20px; border-radius: 5px; z-index: 1000; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);';
+                            document.body.appendChild(message);
+                            setTimeout(() => message.remove(), 5000);
+                        } else {
+                            // Обновляем кнопку без alert
+                            button.textContent = 'Товар в корзине';
+                            button.disabled = true;
+                            // Обновляем все кнопки с тем же product_id
+                            addToCartButtons.forEach(btn => {
+                                if (btn.getAttribute('data-product-id') === productId.toString()) {
+                                    btn.textContent = 'Товар в корзине';
+                                    btn.disabled = true;
+                                }
+                            });
+                            // Отправляем событие cartUpdated
+                            window.dispatchEvent(new CustomEvent('cartUpdated', { 
+                                detail: { 
+                                    product_id: productId, 
+                                    in_cart: true 
+                                } 
+                            }));
+                        }
+                    })
+                    .catch(error => console.error('Ошибка:', error));
+            });
+        });
+    
+        // Обработка события cartUpdated
+        window.addEventListener('cartUpdated', function(e) {
+            const productId = e.detail.product_id;
+            const inCart = e.detail.in_cart;
+            const addToCartButtons = document.querySelectorAll('.add-to-cart');
+            addToCartButtons.forEach(button => {
+                if (button.getAttribute('data-product-id') === productId.toString()) {
+                    button.textContent = inCart ? 'Товар в корзине' : 'Добавить в корзину';
+                    button.disabled = inCart;
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}

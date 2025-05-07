@@ -1,0 +1,123 @@
+{% extends 'home/navigation.html' %}
+{% load static %}
+
+{% block title %}Полный каталог продукции{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'style/products.css' %}" type="text/css">
+
+<div class="container">
+    <h1>Полный каталог продукции</h1>
+
+    <div class="filters">
+        <form method="get" style="margin-bottom: 20px; display: flex; gap: 20px;">
+            <input type="text" name="search" value="{{ search_query }}" placeholder="Поиск по названию..." style="padding: 10px; border-radius: 5px; border: none; width: 300px;">
+            <select name="category" style="padding: 10px; border-radius: 5px; border: none;">
+                <option value="">Все категории</option>
+                {% for category in categories %}
+                    <option value="{{ category.id }}" {% if category.id|stringformat:"s" == request.GET.category %}selected{% endif %}>{{ category.name }}</option>
+                {% endfor %}
+            </select>
+            <select name="sort" style="padding: 10px; border-radius: 5px; border: none;">
+                <option value="name" {% if request.GET.sort == 'name' or not request.GET.sort %}selected{% endif %}>По названию (А-Я)</option>
+                <option value="price_asc" {% if request.GET.sort == 'price_asc' %}selected{% endif %}>По цене (возрастание)</option>
+                <option value="price_desc" {% if request.GET.sort == 'price_desc' %}selected{% endif %}>По цене (убывание)</option>
+            </select>
+            <button type="submit" style="padding: 10px 20px; background-color: #ff4d4d; color: #ffffff; border: none; border-radius: 5px; cursor: pointer;">Применить</button>
+        </form>
+    </div>
+
+    {% if products %}
+        <div class="products">
+            {% for product in products %}
+                <div class="product-card">
+                    {% if product.image_url %}
+                        <img src="{{ product.image_url }}" alt="{{ product.name }}">
+                    {% else %}
+                        <img src="https://via.placeholder.com/150" alt="Нет изображения">
+                    {% endif %}
+                    <h3>{{ product.name }}</h3>
+                    <p>Производитель: {{ product.manufacturer.name }}</p>
+                    <p class="price">{{ product.price }} ₽</p>
+                    <button class="add-to-cart" data-product-id="{{ product.id }}">
+                        {% if product.id in cart_items %}
+                            Товар в корзине
+                        {% else %}
+                            Добавить в корзину
+                        {% endif %}
+                    </button>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p class="no-products">Нет доступных товаров.</p>
+    {% endif %}
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const addToCartButtons = document.querySelectorAll('.add-to-cart');
+        addToCartButtons.forEach(button => {
+            const productId = button.getAttribute('data-product-id');
+            if (button.textContent.trim() === 'Товар в корзине') {
+                button.disabled = true; // Отключаем кнопку, если товар уже в корзине
+            }
+    
+            button.addEventListener('click', function() {
+                fetch(`/add-to-cart/${productId}/`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.error) {
+                            // Показываем сообщение об ошибке
+                            const message = document.createElement('div');
+                            message.className = 'auth-message';
+                            message.textContent = data.error + ' Перейдите на страницу логина.';
+                            message.style.cssText = 'position: fixed; bottom: 20px; right: 20px; background-color: #ff4d4d; color: #ffffff; padding: 10px 20px; border-radius: 5px; z-index: 1000; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);';
+                            document.body.appendChild(message);
+                            setTimeout(() => message.remove(), 5000);
+                        } else {
+                            // Обновляем кнопку без alert
+                            button.textContent = 'Товар в корзине';
+                            button.disabled = true;
+                            // Обновляем все кнопки с тем же product_id
+                            addToCartButtons.forEach(btn => {
+                                if (btn.getAttribute('data-product-id') === productId.toString()) {
+                                    btn.textContent = 'Товар в корзине';
+                                    btn.disabled = true;
+                                }
+                            });
+                            // Показываем уведомление об успехе
+                            const successMessage = document.createElement('div');
+                            successMessage.className = 'success-message';
+                            successMessage.textContent = 'Товар добавлен в корзину!';
+                            successMessage.style.cssText = 'position: fixed; bottom: 20px; right: 20px; background-color: #4caf50; color: #ffffff; padding: 10px 20px; border-radius: 5px; z-index: 1000; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);';
+                            document.body.appendChild(successMessage);
+                            setTimeout(() => successMessage.remove(), 3000);
+                            // Отправляем событие cartUpdated
+                            window.dispatchEvent(new CustomEvent('cartUpdated', { 
+                                detail: { 
+                                    product_id: productId, 
+                                    in_cart: true 
+                                } 
+                            }));
+                        }
+                    })
+                    .catch(error => console.error('Ошибка:', error));
+            });
+        });
+    
+        // Обработка события cartUpdated
+        window.addEventListener('cartUpdated', function(e) {
+            const productId = e.detail.product_id;
+            const inCart = e.detail.in_cart;
+            const addToCartButtons = document.querySelectorAll('.add-to-cart');
+            addToCartButtons.forEach(button => {
+                if (button.getAttribute('data-product-id') === productId.toString()) {
+                    button.textContent = inCart ? 'Товар в корзине' : 'Добавить в корзину';
+                    button.disabled = inCart;
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}

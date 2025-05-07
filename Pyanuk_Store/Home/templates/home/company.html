@@ -1,0 +1,79 @@
+{% extends 'home/navigation.html' %}
+
+{% load static %}
+
+{% block title %}О компании{% endblock %}
+
+{% block content %}
+<head>
+    <link rel="stylesheet" href="{% static 'style/stylehome.css' %}" type="text/css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    <style>
+        .about-us .lead {
+            font-size: 1.25rem; 
+            line-height: 1.5;
+            color: #ffffff; 
+            font-weight: 500; 
+        }
+
+        .about-us .lead a {
+            color: #007bff; 
+            text-decoration: none; 
+            font-weight: 600; 
+        }
+
+        .about-us .lead a:hover {
+            color: #0056b3; 
+            text-decoration: underline; 
+        }
+
+        .about-us .text-center {
+            margin-top: 30px;
+        }
+
+        .additional-info .lead {
+            font-size: 1.25rem;
+            line-height: 1.5;
+            color: #ffffff;
+            font-weight: 500;
+        }
+
+        .additional-info .text-center {
+            margin-top: 30px;
+        }
+    </style>
+</head>
+
+<div class="container mt-5">
+
+    <div class="jumbotron text-left rounded-4 shadow p-5">
+        <h1 class="display-4 animate__animated animate__fadeIn animate__delay-1s">О нашей компании</h1>
+        <p class="lead animate__animated animate__fadeIn animate__delay-2s">Мы — лидер в области продаж качественных товаров по разумным ценам.</p>
+        <a class="btn btn-custom btn-lg mt-3 animate__animated animate__fadeIn animate__delay-3s" href="contacts.html">Связаться с нами</a>
+    </div>
+
+
+    <section class="about-us mt-5">
+        <h2 class="text-center animate__animated animate__fadeIn animate__delay-4s">О нас</h2>
+        <p class="lead text-center animate__animated animate__fadeIn animate__delay-5s">
+            Мы с гордостью представляем нашу компанию, которая занимается продажей высококачественной электронной техники. Мы стремимся предоставить нашим клиентам только лучшие продукты с отличным соотношением цены и качества.
+        </p>
+        <div class="text-center mt-4 animate__animated animate__fadeIn animate__delay-6s">
+            <p class="lead">Наша миссия — помогать вам делать правильный выбор и наслаждаться технологиями, которые делают вашу жизнь удобнее и интереснее.</p>
+        </div>
+    </section>
+
+
+    <section class="additional-info mt-5">
+        <h3 class="text-center animate__animated animate__fadeIn animate__delay-7s">Наши ценности</h3>
+        <p class="lead text-center animate__animated animate__fadeIn animate__delay-8s">
+            Мы ценим доверие наших клиентов и всегда стремимся предоставить высокий уровень сервиса. Каждый продукт, который мы предлагаем, проходит тщательную проверку качества, чтобы гарантировать его надежность и долговечность.
+        </p>
+        <div class="text-center mt-4 animate__animated animate__fadeIn animate__delay-9s">
+            <p class="lead">Мы верим, что технологии должны служить удобству и улучшению качества жизни, и делаем все возможное, чтобы каждая покупка у нас была максимально комфортной и приятной.</p>
+        </div>
+    </section>
+</div>
+
+
+{% endblock %}
